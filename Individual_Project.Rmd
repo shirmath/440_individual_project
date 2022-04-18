@@ -1,0 +1,77 @@
+---
+title: "STA 440 Final Project"
+author: "Shirley Mathur"
+date: "4/14/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load-data}
+setwd("/Users/shirley/Downloads/ICPSR_37166/DS0001")
+load("37166-0001-Data.rda")
+load("../DS0003/37166-0003-Data.rda")
+load("../DS0005/37166-0005-Data.rda")
+load("../DS0007/37166-0007-Data.rda")
+
+# use weights
+# longitudinal data
+# take difference and regress on that
+
+
+# CHARACTERISTICS VARS
+# w1sexminid, w2sexminid - broad categorization of sexuality (gay/lesbian, bi/pan, other (ace, anti-label, etc.))
+# educ1 or educ2 (has less options for education)
+#gurban, gurban_i (urbanicity, either imputed)
+#gcendiv (census division into NE, Midwest, South, West)
+# cohort variable looks at age (young, middle, and old)
+# utilize survey 2 weights (w2) for longitudinal analysis
+# w1_race for racial categories
+# w1sex_gender for gender and sex combined variable
+# participant did not re
+
+##### OUTCOMES
+# w1socialwb, w1socialwb_i, w2socialwb, w2socialwb_i (social well being, use imputed values or not)
+# w1kessler6, w1kessler6_i, w2kessler6, w2kessler6_i (mental disability, use imputed values or not)
+
+
+# can just use the combined "socialwb" type scales for response variables
+
+```
+
+```{r data-exploration}
+df <- da37166.0007
+
+full_df <- df %>%
+  filter(WAVEPARTICIPATED == "(2) Waves 1 and 2")
+
+head(df$WAVEPARTICIPATED)
+
+unique(full_df$W1RACE)
+full_df %>%
+  group_by(W1RACE) %>%
+  summarise(count = n())
+
+full_df %>%
+  group_by(W1SEX_GENDER) %>%
+  summarise(count = n())
+
+full_df %>%
+  group_by(W1KESSLER6) %>%
+  summarise(count = n())
+
+full_df %>%
+  group_by(W2KESSLER6) %>%
+  summarise(count = n())
+
+full_df %>%
+  group_by(W1SOCIALWB) %>%
+  summarise(count = n())
+
+full_df %>%
+  group_by(W2SOCIALWB) %>%
+  summarise(count = n())
+```
+
