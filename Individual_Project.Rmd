@@ -17,11 +17,13 @@ library(lme4)
 
 # Introduction
 
+## Background
+
 Even in modern American society, lesbian, gay, and bisexual (LGB) individuals are still targets of discrimination at a systemic level, as evidenced by the legislation that seeks to target these individuals at all levels of government, ranging from the federal to municipal (@hrc). As posited by Meyer, LGB individuals that have to face such discrimination and prejudice in society are subject to an increased risk of developing mental health problems due to the *minority stress* that they encounter in their daily lives (@minority_stress). However, while this original meta-analysis specifically explored the disparities between the mental health outcomes of LGB individuals against heterosexual individuals, it did not necessarily account for compounding factors that could also influence stress, such as a LGB individuals who are also part of racial minority groups or comparing LGB individuals who are women as opposed to LGB individuals who are men. More recent research exploring these same phenomenon has been done in recent years to see how over time the mental health outcomes of LGB individuals compare to those of heterosexual individuals, while also trying to adjust for these other factors that account for how LGB individuals might also be part of other minority groups. One such study, utilizing data from the National Epidemiologic Survey of Alcohol and Related Conditions (NESARC) that was collected in 2005, found that LGB individuals were associated with a higher odds of having mental health disorders only if they were subject to other forms of discrimination as due to their other marginalized identities outside of just being a LGB individual (@NESARC).
 
 In this report, I seek to further expand upon the line of exploration of how different marginalized identities could together have an association with higher odds of having mental health disorders. I also seek to control for other factors that might influence differential treatment for individuals based on their societal contexts, such as accounting for the region in which people live.
 
-## Exploratory Data Analysis
+## Dataset Description and Variables of Interest
 
 ```{r load-data}
 #setwd("/Users/shirley/Downloads/ICPSR_37166/DS0001")
@@ -37,14 +39,18 @@ load("ICPSR_37166/DS0007//37166-0007-Data.rda")
 
 # CHARACTERISTICS VARS
 # w1sexminid, w2sexminid - broad categorization of sexuality (gay/lesbian, bi/pan, other (ace, anti-label, etc.))
-# educ1 or educ2 (has less options for education)
+# educ1 or educ2 (GEDUC1 has 4 options for education, GEDUC2 has 2 options for education)
 #gurban, gurban_i (urbanicity, either imputed)
-#gcendiv (census division into NE, Midwest, South, West)
+#gcenreg (census division into NE, Midwest, South, West)
 # cohort variable looks at age (young, middle, and old)
 # utilize survey 2 weights (w2) for longitudinal analysis
 # w1_race for racial categories
 # w1sex_gender for gender and sex combined variable
-# participant did not re
+# gmilesaway2 (whether or not there is LGBT health center within 60 miles of respondent)
+# w1poverty (whether or not individual is living in poverty (using 2017 thresholds))
+# w1conversion (whether or not individual underwent therapy for sexual orientation change)
+# w1conversionhc (whether or not individual's sex converesion was from healthcare provider)
+# w1conversionrel (whether or not individual's sex converesion was from religious leader)
 
 ##### OUTCOMES
 # w1socialwb, w1socialwb_i, w2socialwb, w2socialwb_i (social well being, use imputed values or not)
@@ -56,42 +62,120 @@ load("ICPSR_37166/DS0007//37166-0007-Data.rda")
 ```
 
 ```{r data-exploration}
+
+# set df equal to full data across both waves
 df <- da37166.0007
 
+# filter for only those participants who participated in both waves
 full_df <- df %>%
   filter(WAVEPARTICIPATED == "(2) Waves 1 and 2")
 
-head(df$WAVEPARTICIPATED)
-
+# look at counts across race
 unique(full_df$W1RACE)
 full_df %>%
   group_by(W1RACE) %>%
   summarise(count = n())
 
+# look at counts across census division
+full_df %>%
+  group_by(GCENDIV) %>%
+  summarise(count = n())
+
+# look at counts for gender
 full_df %>%
   group_by(W1SEX_GENDER) %>%
   summarise(count = n())
 
+# look at counts for outcome of interest: mental disability at w1
 full_df %>%
   group_by(W1KESSLER6) %>%
   summarise(count = n())
 
+# look at counts for outcome of interest: mental disability at w2
 full_df %>%
   group_by(W2KESSLER6) %>%
   summarise(count = n())
 
+# look at counts for potential outcome of interest: social well being at w1
 full_df %>%
   group_by(W1SOCIALWB) %>%
   summarise(count = n())
 
+# look at counts for potential outcome of interest: social well being at w2
 full_df %>%
   group_by(W2SOCIALWB) %>%
   summarise(count = n())
+
+# look at counts for broad sexuality grouping
+full_df %>% 
+  group_by(W2SEXMINID) %>%
+  summarise(count = n())
+
+# look at counts for specific sexuality grouping
+full_df %>% 
+  group_by(W2SEXUALID) %>%
+  summarise(count = n())
+
+# look at how many individuals are missing either w1 or w2 kessler data
+full_df %>% 
+  filter(is.na(W2KESSLER6) | is.na(W1KESSLER6)) %>%
+  count()
+# 29 observations missing value from both times for kessler rating
+
+# filter to only get observations that have values at both time periods, and select only variables and covariates of interest
+complete_df <- full_df %>%
+  filter(!(is.na(W2KESSLER6) | is.na(W1KESSLER6))) %>%
+  select(W2SEXMINID, GEDUC1, GURBAN, GCENREG, COHORT, W2WEIGHT, W1RACE, W1SEX_GENDER, W1KESSLER6, W2KESSLER6, W1SEX_GENDER, W1POVERTY) %>%
+  drop_na()
+
+missing_num <- pull(count(full_df)) - pull(count(complete_df))
+
 ```
+
+The dataset that was used for this report consisted of survey data from Wave 1 and Wave 2 of the Generations study that was conducted from 2017 through 2019. This study sought to explore a variety of outcomes, ranging from personal and social wellbeing to health outcomes, for members of the LGB population in the US. With context to the aims of my investigation, I was mainly interested in demographic variables that described the background characteristics of the surveyed individuals and how those were associated with mental health outcomes. The variables of interest are delineated below.
+
+* Kessler-6 Score - the Kessler-6 is a questionnaire that asks participants how often they have felt “nervous,” “hopeless,” “restless or fidgety,” “so depressed that nothing could cheer you up,” “that everything was an effort,” and “worthless” in the past 30 days, and is used as a clinical screening tool for assessing if an individual is suffering from Major Depressive Disorder (MDD) (@kessler). This score was the outcome of interest in assessing the mental health outcomes of respondents.
+* Sexuality - this variable is a categorical variables that categorizes respondents as either "gay/lesbian", "bisexual", or "other", depending on the write-in responses they provided for how they label their sexuality. 
+* Education - this variable is a categorical variables that provides information on a respondent's level of education as "high school or less", "some college", "college completed", or "more than college completed."
+* Urbanicity - this variable encodes whether a respondent lives in a locale that is considered urban, as defined in the Generations study technical notes, or if a respondent lives in a locale that is not considered urban.
+* Geographical Census Region - encodes which geographical census region a respondent is from, and the census regions are defined as
+  - Northeast: Connecticut, Maine, Massachusetts, New Hampshire, New Jersey, New York, Pennsylvania, Rhode Island, Vermont
+  - Midwest: Indiana, Illinois, Michigan, Ohio, Wisconsin, Iowa, Kansas, Minnesota, Missouri, Nebraska, North Dakota, South Dakota
+  - South: Delaware, District of Columbia, Florida, Georgia, Maryland, North Carolina, South Carolina, Virginia, West Virginia, Alabama, Kentucky, Mississippi, Tennessee, Arkansas, Louisiana, Oklahoma, Texas
+  - West: Arizona, Colorado, Idaho, New Mexico, Montana, Utah, Nevada, Wyoming, Alaska, California, Hawaii, Oregon, Washington
+* Cohort - variable that characterizes whether a respondent belongs to the "young" (16-27), "middle" (32-43), and "old" (50-61) age range.
+* Race - variable that characterizes the self-reported race of a respondent as being one of: White, Hispanic/Latino, Asian, Multiracial, Middle Eastern, American Indian, Black/African American, or Native Hawaiian/Pacific Islander.
+* Sex and Gender - variable that combines sex and gender information to classify respondents as one of: women, non-transgender; men, non- transgender; genderqueer/non- binary (GQNB), female; GQNB, male.
+* Poverty - variable that characterizes whether a respondent lives in poverty or not, where living in poverty is defined as living below 100% Federal Poverty Line (FPL) according to the FPL calculated in 2017.
+
+For the final dataset, I selected the above variables from the original dataset that contained 894 observations for participants who participated in both Wave 1 and Wave 2 and 929 variables, of which majority were survey questions that were used to compute measures for outcomes of interest (such as the Kessler-6 Score). I removed all observations that had missing data for any of the variables of interest, which resulted in dropping 57 observations and a final dataset containing 837 observations.
+
+
+## Objective
+
+As stated earlier, I wish to further explore the associations that may be present between various demographic characteristics of a LGB individual and their mental health outcomes. Specifically, in the context of this study, since participants were measured at Wave 1 and Wave 2, I want to examine how, if at all, a participant's mental health outcome changed over the course of the year and what associations this change might have with the background characteristics and sexual orientation of an individual.
+
+## Exploratory Data Analysis
+
+
 
 # Methodology
 
+## Model Selection
+
+## Variable Selection
+
+## Model Specification
+
+## Model Diagnostics
+
 # Results
 
-# Conclusion
+# Discussion
+
+## Conclusion
+
+## Limitations and Future Work
+
+## Summary
 
