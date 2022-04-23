@@ -9,12 +9,26 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r load-packages}
+library(tidyverse)
+library(lme4)
+```
+
+
+# Introduction
+
+Even in modern American society, lesbian, gay, and bisexual (LGB) individuals are still targets of discrimination at a systemic level, as evidenced by the legislation that seeks to target these individuals at all levels of government, ranging from the federal to municipal (@hrc). As posited by Meyer, LGB individuals that have to face such discrimination and prejudice in society are subject to an increased risk of developing mental health problems due to the *minority stress* that they encounter in their daily lives (@minority_stress). However, while this original meta-analysis specifically explored the disparities between the mental health outcomes of LGB individuals against heterosexual individuals, it did not necessarily account for compounding factors that could also influence stress, such as a LGB individuals who are also part of racial minority groups or comparing LGB individuals who are women as opposed to LGB individuals who are men. More recent research exploring these same phenomenon has been done in recent years to see how over time the mental health outcomes of LGB individuals compare to those of heterosexual individuals, while also trying to adjust for these other factors that account for how LGB individuals might also be part of other minority groups. One such study, utilizing data from the National Epidemiologic Survey of Alcohol and Related Conditions (NESARC) that was collected in 2005, found that LGB individuals were associated with a higher odds of having mental health disorders only if they were subject to other forms of discrimination as due to their other marginalized identities outside of just being a LGB individual (@NESARC).
+
+In this report, I seek to further expand upon the line of exploration of how different marginalized identities could together have an association with higher odds of having mental health disorders. I also seek to control for other factors that might influence differential treatment for individuals based on their societal contexts, such as accounting for the region in which people live.
+
+## Exploratory Data Analysis
+
 ```{r load-data}
-setwd("/Users/shirley/Downloads/ICPSR_37166/DS0001")
-load("37166-0001-Data.rda")
-load("../DS0003/37166-0003-Data.rda")
-load("../DS0005/37166-0005-Data.rda")
-load("../DS0007/37166-0007-Data.rda")
+#setwd("/Users/shirley/Downloads/ICPSR_37166/DS0001")
+load("ICPSR_37166/DS0001/37166-0001-Data.rda")
+load("ICPSR_37166/DS0003/37166-0003-Data.rda")
+load("ICPSR_37166/DS0005/37166-0005-Data.rda")
+load("ICPSR_37166/DS0007//37166-0007-Data.rda")
 
 # use weights
 # longitudinal data
@@ -74,4 +88,10 @@ full_df %>%
   group_by(W2SOCIALWB) %>%
   summarise(count = n())
 ```
+
+# Methodology
+
+# Results
+
+# Conclusion
 
