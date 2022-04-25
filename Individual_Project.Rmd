@@ -11,13 +11,19 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r load-packages}
 library(tidyverse)
+library(rstanarm)
+library(brms)
 library(lme4)
+library(lattice)
+library(patchwork)
 ```
 
 
 # Introduction
 
 ## Background
+
+**Note to self:Already know of difference between LGB vs. Het, now in this study want to examine differences by other demographic characteristics amongst LGB individuals to see how they are differentially impacted even though they are all LGB individuals.**
 
 Even in modern American society, lesbian, gay, and bisexual (LGB) individuals are still targets of discrimination at a systemic level, as evidenced by the legislation that seeks to target these individuals at all levels of government, ranging from the federal to municipal (@hrc). As posited by Meyer, LGB individuals that have to face such discrimination and prejudice in society are subject to an increased risk of developing mental health problems due to the *minority stress* that they encounter in their daily lives (@minority_stress). However, while this original meta-analysis specifically explored the disparities between the mental health outcomes of LGB individuals against heterosexual individuals, it did not necessarily account for compounding factors that could also influence stress, such as a LGB individuals who are also part of racial minority groups or comparing LGB individuals who are women as opposed to LGB individuals who are men. More recent research exploring these same phenomenon has been done in recent years to see how over time the mental health outcomes of LGB individuals compare to those of heterosexual individuals, while also trying to adjust for these other factors that account for how LGB individuals might also be part of other minority groups. One such study, utilizing data from the National Epidemiologic Survey of Alcohol and Related Conditions (NESARC) that was collected in 2005, found that LGB individuals were associated with a higher odds of having mental health disorders only if they were subject to other forms of discrimination as due to their other marginalized identities outside of just being a LGB individual (@NESARC).
 
@@ -153,15 +159,82 @@ For the final dataset, I selected the above variables from the original dataset 
 
 ## Objective
 
-As stated earlier, I wish to further explore the associations that may be present between various demographic characteristics of a LGB individual and their mental health outcomes. Specifically, in the context of this study, since participants were measured at Wave 1 and Wave 2, I want to examine how, if at all, a participant's mental health outcome changed over the course of the year and what associations this change might have with the background characteristics and sexual orientation of an individual.
+The main objective of this report is to explore the associations between various demographic characteristics of a LGB individual and their mental health outcomes. Specifically, in the context of this study, since participants were measured at Wave 1 and Wave 2, I want to examine how, if at all, a participant's mental health outcome changed over the course of the year and what associations this change might have with the background characteristics and an individual. This would allow us to gain insight into how other societal factors and minority statuses that LGB individuals hold might impact their mental health outcomes.
 
 ## Exploratory Data Analysis
 
+```{r eda-plots, fig.width = 8}
+complete_df <- complete_df %>%
+  mutate(kessler_diff = W2KESSLER6 - W1KESSLER6)
 
+diff_distribution <- complete_df %>%
+  ggplot(mapping = aes(x = kessler_diff)) +
+  geom_histogram() +
+  labs(title = "Distribution in Change of Kessler-6 Scores Among Participants",
+       x = "Difference of Score\n (Wave 2 - Wave 1)",
+       y = "Count") +
+  theme_bw()
+
+race_diff <- complete_df %>%
+  ggplot(mapping = aes(x = W1RACE, y = kessler_diff)) +
+  geom_boxplot() +
+  labs(title = "Change of Kessler-6 Scores\n Across Race",
+       y = "Difference of Score\n (Wave 2 - Wave 1)",
+       x = "Race") +
+  coord_flip() +
+  theme_bw()
+
+income_diff <- complete_df %>%
+  ggplot(mapping = aes(x = W1POVERTY, y = kessler_diff)) +
+  geom_boxplot() +
+  labs(title = "Change of Kessler-6 Scores\n Across Poverty Status",
+       y = "Difference of Score\n (Wave 2 - Wave 1)",
+       x = "Poverty Status") +
+  coord_flip() +
+  theme_bw()
+
+geo_diff <- complete_df %>%
+  ggplot(mapping = aes(x = GCENREG, y = kessler_diff)) +
+  geom_boxplot() +
+  labs(title = "Change of Kessler-6 Scores\n by Geographical Region",
+       y = "Difference of Score\n (Wave 2 - Wave 1)",
+       x = "Geographical Region") +
+  coord_flip() +
+  theme_bw()
+
+age_diff <- complete_df %>%
+  ggplot(mapping = aes(x = COHORT, y = kessler_diff)) +
+  geom_boxplot() +
+  labs(title = "Change of Kessler-6 Scores\n by Age Cohort",
+       y = "Difference of Score\n (Wave 2 - Wave 1)",
+       x = "Age Cohort") +
+  coord_flip() +
+  theme_bw()
+
+diff_distribution + plot_annotation(caption = "Figure 1: Distribution in change of Kessler-6 Scores from Wave 1 survey to Wave 2 survey. As seen above, the distribution of difference in score appears to be approximately normal.")
+
+eda_plots <- (income_diff + age_diff) / (race_diff + geo_diff)
+eda_plots +
+  plot_annotation(caption = "Figure 2: Distribution of changes in Kessler-6 scores from Wave 1 survey to Wave 2 survey amongst participants with varying demographic characeristics of race, geographic region, poverty status, and age cohort.",
+                  tag_levels = "A")
+```
+
+From Figure 1 above, we can observe that the distribution of difference in Kessler-6 score is approximately normal amongst the sample of participants that participated in both waves of the Generations survey.
+
+From Figure 2A, we can see that the median change in Kessler-6 Score for individuals who live below the FPL appears to be lower than the median change in Kessler-6 Score for individuals who live above the FPL. Thus, we might want to consider poverty status as a covariate in our model to see whether there is a statistically significant association between poverty status and change in Kessler-6 Score.
+
+From Figure 2B, we can see that the median change in Kessler-6 Score for individuals across all of the age cohorts appears to be relatively the same. However, we would need to include age cohort as a covariate in our model to see whether there is a statistically significant association between age cohort and change in Kessler-6 Score.
+
+From Figure 2C, we can see that the median change in Kessler-6 Score seems to be different for different racial subgroups of the survey sample. From the plot, it appears that Multiracial, White, Hispanic/Latino, Black/African American, and Asian individuals have approximately the same median change in Kessler-6 Score. However, it appears that Native Hawaiian/Pacific Islander and Middle Eastern individuals have a lower median Kessler-6 Score than individuals in all of the other racial categories. Due to the apparent differences in the distributions for change in Kessler-6 Score across the different racial groups, we might want to consider race as a covariate in our model to see whether there is a statistically significant association between race and change in Kessler-6 Score.
+
+From Figure 2D, we can see that the median change in Kessler-6 Score seems to be roughly the same across all of the various geographic census regions. However, while all of the regions seem to have fairly symmetric distributions, the South seems to be skewed left, perhaps implying that more individuals in the South region had a positive change in Kessler-6 score. Given that even though the median is roughly the same, but the distributions vary, it might be useful to include geogrphic region as a covariate in our model to assess whether it has a statistically significant association with change in Kessler-6 Score.
 
 # Methodology
 
 ## Model Selection
+
+For modeling the relationship between the covariates of interest and the difference in Kessler-6 outcomes between the Wave 1 survey and Wave 2 survey, I decided to utilize a mixed effects linear regression model. The rationale behind this modeling approach is that while all of the covariates of interest are categorical variables, some have only two factors, such as poverty status, whereas others have many more, such as race. Furthermore, the variables that have many more covariates, such as race, seem to have imbalanced counts of different categories, which is where having random intercepts by race could be useful in modeling the association between racial category and change in Kessler-6 Score.
+
 
 ## Variable Selection
 
@@ -170,6 +243,11 @@ As stated earlier, I wish to further explore the associations that may be presen
 ## Model Diagnostics
 
 # Results
+```{r model}
+m1 <- lmer(kessler_diff ~ 1 + W2SEXMINID + GEDUC1 + GURBAN + GCENREG + COHORT + (1 | W1RACE) + W1SEX_GENDER + W1POVERTY, data = complete_df)
+
+summary(m1)
+```
 
 # Discussion
 
