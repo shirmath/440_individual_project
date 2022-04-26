@@ -6,7 +6,10 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      results = FALSE)
 ```
 
 ```{r load-packages}
@@ -16,6 +19,10 @@ library(brms)
 library(lme4)
 library(lattice)
 library(patchwork)
+library(gtsummary)
+library(kableExtra)
+library(tidybayes)
+library(bookdown)
 ```
 
 
@@ -240,13 +247,123 @@ For modeling the relationship between the covariates of interest and the differe
 
 ## Model Specification
 
+\begin{align*}
+Y_i = \beta_0 + \beta_1(\text{Sexuality}_i = \text{Bisexual}) + \beta_2(\text{Sexuality}_i = \text{Other Sexuali Minority}) + \beta_3(\text{Education}_i = \text{Some college}) + \beta_4(\text{Education}_i = \text{College}) + \beta_5(\text{Education}_i = \text{More than college}) + \beta_6(\text{Urbanicity}_i = \text{Urban}) + \beta_7(\text{Region}_i = \text{Midwest}) + \beta_8(\text{Region}_i = \text{South}) + \beta_9(\text{Region}_i = \text{West}) + \beta_{10}(\text{Age Cohort}_i = \text{Middle}) + \beta_{11}(\text{Age Cohort}_i = \text{Older}) + \beta_{12}(\text{Sex, Gender}_i = \text{Men, non-transgender}) + \beta_{13}(\text{Sex, Gender}_i = \text{Genderqueer/Non-Binary, Female}) + \beta_{14}(\text{Sex, Gender}_i = \text{Genderqueer/Non-Binary, Male}) + \beta_{15}(\text{Poverty Status}_i = \text{Below FPL}) + b_{0i} + \epsilon_{ij}
+\end{align*}
+
 ## Model Diagnostics
 
 # Results
 ```{r model}
-m1 <- lmer(kessler_diff ~ 1 + W2SEXMINID + GEDUC1 + GURBAN + GCENREG + COHORT + (1 | W1RACE) + W1SEX_GENDER + W1POVERTY, data = complete_df)
+m1 <- lmer(kessler_diff ~ 1 + W2SEXMINID + GEDUC1 + GURBAN + GCENREG + COHORT + (1 | W1RACE) + W1SEX_GENDER + W1POVERTY, data = complete_df,
+           weights = W2WEIGHT)
+
+m2 <- lmer(kessler_diff ~ 1 + W2SEXMINID + GEDUC1 + GURBAN + GCENREG + COHORT + (1 | W1RACE) + W1SEX_GENDER + W1POVERTY, data = complete_df)
+
+m3 <- brm(kessler_diff ~ 1 + W2SEXMINID + GEDUC1 + GURBAN + GCENREG + COHORT + (1 | W1RACE) + W1SEX_GENDER + W1POVERTY, data = complete_df)
 
 summary(m1)
+summary(m2)
+summary(m3)
+
+```
+
+```{r results, results=TRUE}
+posterior_draws <- as.data.frame(m3)
+colnames(posterior_draws) <- c("Intercept", "Bisexual", "Other Sexual Minority",
+                               "Some College", "College", "More than College",
+                               "Urban",
+                               "Midwest", "South", "West",
+                               "Middle Age Cohort", "Older Age Cohort",
+                               "Men, Non-transgender", "Genderqueer Non-binary, Female", "Genderqueer Non-binary, Male",
+                               "Below FPL",
+                               "Sigma for Race Intercept",
+                               "Sigma",
+                               "Asian",
+                               "Black/African American",
+                               "Hispanic/Latino",
+                               "Middle Eastern",
+                               "Native Hawaiian/Pacific Islander",
+                               "White",
+                               "American Indian",
+                               "Multiracial"
+                               )
+posterior_draws <- posterior_draws[,c("Intercept", 
+                                      "Bisexual", "Other Sexual Minority", #row 2-3
+                                      "Some College", "College", "More than College", #rows 4-6
+                                      "Urban", #row 7
+                                      "Midwest", "South", "West", # rows 8-10
+                                      "Middle Age Cohort", "Older Age Cohort", #rows 11-12
+                                      "Men, Non-transgender", "Genderqueer Non-binary, Female", "Genderqueer Non-binary, Male", # rows 13-15
+                                      "Below FPL", # row 16
+                                      "Sigma for Race Intercept", #row 17 - 25
+                                      "Asian",
+                                      "Black/African American",
+                                      "Hispanic/Latino",
+                                      "Middle Eastern",
+                                      "Native Hawaiian/Pacific Islander",
+                                      "White",
+                                      "American Indian",
+                                      "Multiracial",
+                                      "Sigma") ]
+est <- round(unlist(map_dbl(posterior_draws, ~unlist(mean(.x)))),3)
+attr(est, which = "names") <- NULL
+est <- est[1:length(est) - 1]
+q1 <- round(unlist(map_dbl(posterior_draws, ~ unlist(quantile(.x, 0.025)))),3)
+attr(q1, which = "names") <- NULL
+q1 <- q1[1:length(q1) - 1]
+q2 <- round(unlist(map_dbl(posterior_draws, ~ unlist(quantile(.x, 0.975)))),3)
+attr(q2, which = "names") <- NULL
+q2 <- q2[1:length(q2) - 1]
+data.frame(Variable = colnames(posterior_draws)[1:length(est)],
+           Parameter_Estimate = est,
+           Quantile1 = q1,
+           Quantile2 = q2
+           ) %>%
+  kbl(caption = "Summary of Parameter Posterior Distributions", col.names = c("Variables", "Posterior Mean", "2.5th Percentile", "97.5th Percentile"), booktabs = T) %>%
+  group_rows("Sexual Identity Coefficients", 2, 3) %>%
+  group_rows("Education Coefficients", 4, 6) %>%
+  group_rows("Urbanicity Coefficients", 7, 7) %>%
+  group_rows("Geographical Region Coefficients", 8, 10) %>%
+  group_rows("Age Cohort Coefficients", 11, 12) %>%
+  group_rows("Sex and Gender Coefficients", 13, 15) %>%
+  group_rows("Poverty Status Coefficients", 16, 16) %>%
+  group_rows("Random Intercepts by Race", 17, 25) %>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+
+```{r compare-race-levels, results=TRUE}
+race_comp <- spread_draws(m3, r_W1RACE[W1RACE,]) %>%
+  mutate(W1RACE = case_when(
+    W1RACE == "(1).Asian" ~ "Asian",
+    W1RACE == "(2).Black/African.American" ~ "Black/African American",
+    W1RACE == "(3).Hispanic/Latino" ~ "Hispanic/Latino",
+    W1RACE == "(4).Middle.Eastern" ~ "Middle Eastern",
+    W1RACE == "(5).Native.Hawaiian/Pacific.Islander" ~ "Native Hawaiian/Pacific Islander",
+    W1RACE == "(6).White" ~ "White",
+    W1RACE == "(7).American.Indian"  ~ "American Indian",
+    W1RACE == "(8).Multirace" ~ "Multiracial"
+  )) %>%
+  compare_levels(r_W1RACE, by = W1RACE) %>%
+  ungroup() %>%
+  mutate(W1RACE = reorder(W1RACE, r_W1RACE)) %>%
+  mutate(`Conditional Mean` = r_W1RACE) 
+
+comparison_intervals <- race_comp %>%
+  group_by(W1RACE) %>%
+  median_qi(.width = c(0.66, 0.95)) %>%
+  rowwise() %>%
+  mutate(Significant = ifelse(between(0, `Conditional Mean.lower`, `Conditional Mean.upper`), "No", "Yes")) 
+
+comparison_intervals[1:28,] %>%
+  select(W1RACE, `Conditional Mean.lower`, `Conditional Mean`, `Conditional Mean.upper`) %>%
+  kbl(caption = "Summary of Conditional Means of Comparisons of Race Intercepts (66th Percentile Intervals)", col.names = c("Race Comparison", "Lower Quantile", "Conditional Mean", "Upper Quantile"), booktabs = T)
+
+comparison_intervals[29:56,] %>%
+  select(W1RACE, `Conditional Mean.lower`, `Conditional Mean`, `Conditional Mean.upper`) %>%
+  kbl(caption = "Summary of Conditional Means of Comparisons of Race Intercepts (95th Percentile Intervals)", col.names = c("Race Comparison", "Lower Quantile", "Conditional Mean", "Upper Quantile"), booktabs = T)
+
 ```
 
 # Discussion
@@ -256,4 +373,18 @@ summary(m1)
 ## Limitations and Future Work
 
 ## Summary
+
+# Appendix
+
+## Model Diagnostics
+
+## Plot of Conditional Mean of Posterior Comparisons for Race Intercepts
+```{r comparison-plots, results = TRUE}
+race_comp %>%
+  ggplot(aes(y = W1RACE, x = `Conditional Mean`)) +
+  stat_halfeye() +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "Conditional Mean Difference", y = "Race Estimated Effect Pairings") + 
+  theme_bw()
+```
 
