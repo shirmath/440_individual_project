@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.4.7)  27 APR 2022 12:02
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.4.7)  27 APR 2022 12:46
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -645,30 +645,30 @@ File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 ) [1
 
 {/usr/local/texlive/2020/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-<Individual_Project_files/figure-latex/eda-plots-1.pdf, id=91, 568.1225pt x 311
-.1625pt>
+<Individual_Project_files/figure-latex/eda-plots-1.pdf, id=91, 558.085pt x 311.
+1625pt>
 File: Individual_Project_files/figure-latex/eda-plots-1.pdf Graphic file (type 
 pdf)
 <use Individual_Project_files/figure-latex/eda-plots-1.pdf>
 Package pdftex.def Info: Individual_Project_files/figure-latex/eda-plots-1.pdf 
  used on input line 238.
-(pdftex.def)             Requested size: 469.7731pt x 257.29623pt.
-<Individual_Project_files/figure-latex/eda-plots-2.pdf, id=92, 568.1225pt x 309
-.155pt>
+(pdftex.def)             Requested size: 469.76752pt x 261.92073pt.
+<Individual_Project_files/figure-latex/eda-plots-2.pdf, id=92, 557.08125pt x 30
+9.155pt>
 File: Individual_Project_files/figure-latex/eda-plots-2.pdf Graphic file (type 
 pdf)
 <use Individual_Project_files/figure-latex/eda-plots-2.pdf>
 Package pdftex.def Info: Individual_Project_files/figure-latex/eda-plots-2.pdf 
  used on input line 239.
-(pdftex.def)             Requested size: 469.7731pt x 255.63625pt.
-<Individual_Project_files/figure-latex/eda-plots-3.pdf, id=93, 569.12625pt x 30
-9.155pt>
+(pdftex.def)             Requested size: 469.76414pt x 260.69792pt.
+<Individual_Project_files/figure-latex/eda-plots-3.pdf, id=93, 560.0925pt x 309
+.155pt>
 File: Individual_Project_files/figure-latex/eda-plots-3.pdf Graphic file (type 
 pdf)
 <use Individual_Project_files/figure-latex/eda-plots-3.pdf>
 Package pdftex.def Info: Individual_Project_files/figure-latex/eda-plots-3.pdf 
  used on input line 240.
-(pdftex.def)             Requested size: 469.7781pt x 255.1881pt.
+(pdftex.def)             Requested size: 469.77368pt x 259.3016pt.
 [2] [3 <./Individual_Project_files/figure-latex/eda-plots-1.pdf> <./Individual_
 Project_files/figure-latex/eda-plots-2.pdf>] [4 <./Individual_Project_files/fig
 ure-latex/eda-plots-3.pdf>]
@@ -762,7 +762,7 @@ ist/fonts/type1/public/lm/lmr12.pfb></usr/local/texlive/2020/texmf-dist/fonts/t
 ype1/public/lm/lmr17.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public
 /lm/lmr7.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmri10.p
 fb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmsy10.pfb>
-Output written on Individual_Project.pdf (9 pages, 328320 bytes).
+Output written on Individual_Project.pdf (9 pages, 328276 bytes).
 PDF statistics:
  234 PDF objects out of 1000 (max. 8388607)
  199 compressed objects within 2 object streams

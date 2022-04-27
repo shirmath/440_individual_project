@@ -23,6 +23,7 @@ library(gtsummary)
 library(kableExtra)
 library(tidybayes)
 library(bookdown)
+library(bayesplot)
 ```
 
 
@@ -226,16 +227,16 @@ age_diff <- complete_df %>%
   coord_flip() +
   theme_bw()
 
-diff_distribution + plot_annotation(caption = "Figure 1: Distribution in change of Kessler-6 Scores from Wave 1 survey to Wave 2 survey. As seen above, the distribution of difference in score appears to be approximately normal.")
+diff_distribution + plot_annotation(caption = "Figure 1: Distribution in change of Kessler-6 Scores from Wave 1 survey to Wave 2 survey. \n As seen above, the distribution of difference in score appears to be approximately normal.")
 
 income_age <- (income_diff + age_diff)
 race_geo <- race_diff + geo_diff
 income_age +
-  plot_annotation(caption = "Figure 2: Distribution of changes in Kessler-6 scores from Wave 1 survey to Wave 2 survey amongst participants with varying demographic characeristics of poverty status and age cohort.",
+  plot_annotation(caption = "Figure 2: Distribution of changes in Kessler-6 scores from Wave 1 survey to Wave 2 survey amongst participants \n with varying demographic characeristics of poverty status and age cohort.",
                   tag_levels = "A")
 
 race_geo +
-  plot_annotation(caption = "Figure 3: Distribution of changes in Kessler-6 scores from Wave 1 survey to Wave 2 survey amongst participants with varying demographic characeristics of racial identity and geographic region of residence.",
+  plot_annotation(caption = "Figure 3: Distribution of changes in Kessler-6 scores from Wave 1 survey to Wave 2 survey amongst participants \n with varying demographic characeristics of racial identity and geographic region of residence.",
                   tag_levels = "A")
 ```
 
@@ -270,8 +271,16 @@ Y_i = \beta_0 + \beta_1(\text{Sexuality}_i = \text{Bisexual}) + \beta_2(\text{Se
 \end{multline*}
 
 \begin{align*}
-\text{where } \beta_{0i} \sim N(0, \sigma_0) \perp \epsilon_{ij} \sim N(0, \sigma)
+\text{where } &\beta_{0i} \sim N(0, \sigma_0) \perp \epsilon_{ij} \sim N(0, \sigma)
 \end{align*}
+
+with the *brms* default priors set on all parameters as follows:
+
+\begin{align*}
+\sigma_0, \sigma, \beta_0 \stackrel{iid}{\tilde}\text{half-Student-t}(3)
+\end{align*}
+
+as well as flat prior specified for all of the $\beta_k$ coefficients, where $k = 1, \ldots, 15$. The justification for these priors is that they are weakly informative and lead to improved convergence and sampling efficiency for the posterior @gelman_2006.
 
 
 ## Model Diagnostics
@@ -389,17 +398,113 @@ comparison_intervals[29:56,] %>%
 
 ```
 
+From the results provided above in Table 1, the only statistically significant association found within the model is that of the association between an LGB individual being located in the South as opposed to the North. In particular, the model results indicate that, holding all other covariates constant, a LGB individual located in the South is expected to have an difference in Kessler-6 Score that is 0.941 units greater than a LGB individual located in the North.
+
+With regards to the differences amongst racial groups, none of the mean differences between the random intercepts by race, conditional on all other covariates being constant, were found to be statistically significant. The results for these comparisons can be found in the Appendix.
+
 # Discussion
 
-## Conclusion
+## Investigative Conclusions
+From the model results, with regards to the general question of whether mental health outcomes differ across LGB individuals from various different demographic background, it appears that the only significant association with difference in outcome is between those LGB individuals located in the South as opposed to the North. This finding struck me as somewhat surprising given that typically Northern states tend to have better legal protections in place for LGB people and more positive societal attitudes towards LGB people than Southern states (@hrc).
+
+With regards to the secondary question of interest of examining whether there are any differences amongst the racial groups, it appears that there are no statistially significant differences in the magnitude of the association between race and mental health outcomes across all of the racial groups. This finding also struck me as surprising, as it seems counter-intuitive to what has been suggested in the literature elsewhere that other demographic characteristics, such as race, might have differential associations with mental health outcomes within the population LGB people in the U.S. (@NESARC).
 
 ## Limitations and Future Work
+
+
 
 ## Summary
 
 # Appendix
 
 ## Model Diagnostics
+
+### Trace Plots
+
+```{r model-validation-plots}
+trace_data_names <- unique(mcmc_trace_data(m3)$parameter)
+trace_data <- mcmc_trace_data(m3) %>%
+  mutate(parameter = case_when(
+    parameter == trace_data_names[[1]] ~ "Intercept",
+    parameter == trace_data_names[[2]] ~ "Sexual Identity - Lesbian/Gay",
+    parameter == trace_data_names[[3]] ~ "Sexual Identity - Other Sexual Minority",
+    parameter == trace_data_names[[4]] ~ "Education - Less than High School",
+    parameter == trace_data_names[[5]] ~ "Education - More than college",
+    parameter == trace_data_names[[6]] ~ "Education - Some college",
+    parameter == trace_data_names[[7]] ~ "Urbanicity - Urban",
+    parameter == trace_data_names[[8]] ~ "Region - Northeast",
+    parameter == trace_data_names[[9]] ~ "Region - South",
+    parameter == trace_data_names[[10]] ~ "Region - West",
+    parameter == trace_data_names[[11]] ~ "Cohort - Older",
+    parameter == trace_data_names[[12]] ~ "Cohort - Younger",
+    parameter == trace_data_names[[13]] ~ "Sex,Gender - Queer/NB Male",
+    parameter == trace_data_names[[14]] ~ "Sex,Gender - Cisgender Male",
+    parameter == trace_data_names[[15]] ~ "Sex,Gender - Cisgender Female",
+    parameter == trace_data_names[[16]] ~ "Poverty - Below FPL",
+    parameter == trace_data_names[[17]] ~ "Race Intercepts Sigma",
+    parameter == trace_data_names[[18]] ~ "Sigma",
+    parameter == trace_data_names[[19]] ~ "Race - American Indian",
+    parameter == trace_data_names[[20]] ~ "Race - Asian",
+    parameter == trace_data_names[[21]] ~ "Race - Black/African American",
+    parameter == trace_data_names[[22]] ~ "Race - Hispanic/Latino",
+    parameter == trace_data_names[[23]] ~ "Race - Middle Eastern",
+    parameter == trace_data_names[[24]] ~ "Race - Multiracial",
+    parameter == trace_data_names[[25]] ~ "Race - Native Hawaiian/Pacific Islander",
+    parameter == trace_data_names[[26]] ~ "Race - White"))
+trace_plot <- trace_data %>%
+  ggplot(mapping = aes(x = iteration, y = value, color = chain)) +
+ # scale_color_manual(values = c("red", "blue", "green", "pink")) +
+  geom_line(alpha = 0.5) +
+  facet_wrap(~ parameter, scales = "free_y")  +
+  theme_bw(base_size = 6) +
+  labs(x = "Iteration", y = "Sampled Value")
+density_plot <- trace_data %>%
+  ggplot(mapping = aes(x = value, color = chain)) +
+  geom_density() +
+#  scale_color_manual(values = c("red", "blue")) +
+  theme_bw(base_size = 6) +
+  labs(x = "Sampled Values") +
+  facet_wrap( ~ parameter, scales = "free")
+  
+pp_check_hist <- pp_check(m3, plotfun = "hist", nreps = 5, binwidth = 1) + 
+  xlab("Kessler-6 Difference") 
+
+acf_data <- mcmc_acf_bar(m3)$data
+acf_plot <- acf_data %>% 
+  mutate(Parameter = case_when(
+  Parameter == trace_data_names[[1]] ~ "Intercept",
+    Parameter == trace_data_names[[2]] ~ "Sexual Identity - Lesbian/Gay",
+    Parameter == trace_data_names[[3]] ~ "Sexual Identity - Other Sexual Minority",
+    Parameter == trace_data_names[[4]] ~ "Education - Less than High School",
+    Parameter == trace_data_names[[5]] ~ "Education - More than college",
+    Parameter == trace_data_names[[6]] ~ "Education - Some college",
+    Parameter == trace_data_names[[7]] ~ "Urbanicity - Urban",
+    Parameter == trace_data_names[[8]] ~ "Region - Northeast",
+    Parameter == trace_data_names[[9]] ~ "Region - South",
+    Parameter == trace_data_names[[10]] ~ "Region - West",
+    Parameter == trace_data_names[[11]] ~ "Cohort - Older",
+    Parameter == trace_data_names[[12]] ~ "Cohort - Younger",
+    Parameter == trace_data_names[[13]] ~ "Sex,Gender - Queer/NB Male",
+    Parameter == trace_data_names[[14]] ~ "Sex,Gender - Cisgender Male",
+    Parameter == trace_data_names[[15]] ~ "Sex,Gender - Cisgender Female",
+    Parameter == trace_data_names[[16]] ~ "Poverty - Below FPL",
+    Parameter == trace_data_names[[17]] ~ "Race Intercepts Sigma",
+    Parameter == trace_data_names[[18]] ~ "Sigma",
+    Parameter == trace_data_names[[19]] ~ "Race - American Indian",
+    Parameter == trace_data_names[[20]] ~ "Race - Asian",
+    Parameter == trace_data_names[[21]] ~ "Race - Black/African American",
+    Parameter == trace_data_names[[22]] ~ "Race - Hispanic/Latino",
+    Parameter == trace_data_names[[23]] ~ "Race - Middle Eastern",
+    Parameter == trace_data_names[[24]] ~ "Race - Multiracial",
+    Parameter == trace_data_names[[25]] ~ "Race - Native Hawaiian/Pacific Islander",
+    Parameter == trace_data_names[[26]] ~ "Race - White")) %>%
+  ggplot(mapping = aes(x = Lag, y = AC)) +
+  geom_bar(stat = "identity", color = "red", fill = "red", alpha = 0.5) +
+  facet_grid(Chain ~ Parameter) +
+  labs(x = "Lag", y = "Autocorrelation") +
+  theme_bw(base_size = 6)
+```
+
 
 ## Plot of Conditional Mean of Posterior Comparisons for Race Intercepts
 ```{r comparison-plots, results = TRUE}
