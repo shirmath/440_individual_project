@@ -136,12 +136,12 @@ full_df %>%
 # 29 observations missing value from both times for kessler rating
 
 # filter to only get observations that have values at both time periods, and select only variables and covariates of interest
-complete_df <- full_df %>%
+complete_full_df <- full_df %>%
   filter(!(is.na(W2KESSLER6) | is.na(W1KESSLER6))) %>%
   select(W2SEXMINID, GEDUC1, GURBAN, GCENREG, COHORT, W2WEIGHT, W1RACE, W1SEX_GENDER, W1KESSLER6, W2KESSLER6, W1SEX_GENDER, W1POVERTY) %>%
   drop_na()
 
-missing_num <- pull(count(full_df)) - pull(count(complete_df))
+missing_num <- pull(count(full_df)) - pull(count(complete_full_df))
 
 ```
 
@@ -171,8 +171,16 @@ The main objective of this report is to explore the associations between various
 ## Exploratory Data Analysis
 
 ```{r eda-plots, fig.width = 8}
-complete_df <- complete_df %>%
-  mutate(kessler_diff = W2KESSLER6 - W1KESSLER6)
+complete_df <- complete_full_df %>%
+  mutate(kessler_diff = W2KESSLER6 - W1KESSLER6,
+         W1RACE = str_sub(W1RACE, 5, -1),
+         W1SEX_GENDER = str_sub(W1SEX_GENDER, 5, -1),
+         W1POVERTY = str_sub(W1POVERTY, 5, -1),
+         GCENREG = str_sub(GCENREG, 5, -1),
+         GURBAN = str_sub(GURBAN, 5, -1),
+         GEDUC1 = str_sub(GEDUC1, 5, -1),
+         W2SEXMINID = str_sub(W2SEXMINID, 5, -1),
+         COHORT = str_sub(COHORT, 5, -1))
 
 diff_distribution <- complete_df %>%
   ggplot(mapping = aes(x = kessler_diff)) +
@@ -220,9 +228,14 @@ age_diff <- complete_df %>%
 
 diff_distribution + plot_annotation(caption = "Figure 1: Distribution in change of Kessler-6 Scores from Wave 1 survey to Wave 2 survey. As seen above, the distribution of difference in score appears to be approximately normal.")
 
-eda_plots <- (income_diff + age_diff) / (race_diff + geo_diff)
-eda_plots +
-  plot_annotation(caption = "Figure 2: Distribution of changes in Kessler-6 scores from Wave 1 survey to Wave 2 survey amongst participants with varying demographic characeristics of race, geographic region, poverty status, and age cohort.",
+income_age <- (income_diff + age_diff)
+race_geo <- race_diff + geo_diff
+income_age +
+  plot_annotation(caption = "Figure 2: Distribution of changes in Kessler-6 scores from Wave 1 survey to Wave 2 survey amongst participants with varying demographic characeristics of poverty status and age cohort.",
+                  tag_levels = "A")
+
+race_geo +
+  plot_annotation(caption = "Figure 3: Distribution of changes in Kessler-6 scores from Wave 1 survey to Wave 2 survey amongst participants with varying demographic characeristics of racial identity and geographic region of residence.",
                   tag_levels = "A")
 ```
 
@@ -247,24 +260,34 @@ For modeling the relationship between the covariates of interest and the differe
 
 ## Model Specification
 
+\begin{multline*}
+Y_i = \beta_0 + \beta_1(\text{Sexuality}_i = \text{Bisexual}) + \beta_2(\text{Sexuality}_i = \text{Other Sexual Minority}) + \beta_3(\text{Education}_i = \text{Some college}) \\
++ \beta_4(\text{Education}_i = \text{College}) + \beta_5(\text{Education}_i = \text{More than college}) + \beta_6(\text{Urbanicity}_i = \text{Urban}) \\
++ \beta_7(\text{Region}_i = \text{Midwest}) + \beta_8(\text{Region}_i = \text{South}) + \beta_9(\text{Region}_i = \text{West})  + \beta_{10}(\text{Age Cohort}_i = \text{Middle}) \\
++ \beta_{11}(\text{Age Cohort}_i = \text{Older}) + \beta_{12}(\text{Sex, Gender}_i = \text{Men, non-transgender}) \\
++ \beta_{13}(\text{Sex, Gender}_i = \text{Genderqueer/Non-Binary, Female}) + \beta_{14}(\text{Sex, Gender}_i = \text{Genderqueer/Non-Binary, Male}) \\
++ \beta_{15}(\text{Poverty Status}_i = \text{Below FPL}) + b_{0j} + \epsilon_{ij}
+\end{multline*}
+
 \begin{align*}
-Y_i = \beta_0 + \beta_1(\text{Sexuality}_i = \text{Bisexual}) + \beta_2(\text{Sexuality}_i = \text{Other Sexuali Minority}) + \beta_3(\text{Education}_i = \text{Some college}) + \beta_4(\text{Education}_i = \text{College}) + \beta_5(\text{Education}_i = \text{More than college}) + \beta_6(\text{Urbanicity}_i = \text{Urban}) + \beta_7(\text{Region}_i = \text{Midwest}) + \beta_8(\text{Region}_i = \text{South}) + \beta_9(\text{Region}_i = \text{West}) + \beta_{10}(\text{Age Cohort}_i = \text{Middle}) + \beta_{11}(\text{Age Cohort}_i = \text{Older}) + \beta_{12}(\text{Sex, Gender}_i = \text{Men, non-transgender}) + \beta_{13}(\text{Sex, Gender}_i = \text{Genderqueer/Non-Binary, Female}) + \beta_{14}(\text{Sex, Gender}_i = \text{Genderqueer/Non-Binary, Male}) + \beta_{15}(\text{Poverty Status}_i = \text{Below FPL}) + b_{0i} + \epsilon_{ij}
+\text{where } \beta_{0i} \sim N(0, \sigma_0) \perp \epsilon_{ij} \sim N(0, \sigma)
 \end{align*}
+
 
 ## Model Diagnostics
 
 # Results
 ```{r model}
-m1 <- lmer(kessler_diff ~ 1 + W2SEXMINID + GEDUC1 + GURBAN + GCENREG + COHORT + (1 | W1RACE) + W1SEX_GENDER + W1POVERTY, data = complete_df,
-           weights = W2WEIGHT)
-
-m2 <- lmer(kessler_diff ~ 1 + W2SEXMINID + GEDUC1 + GURBAN + GCENREG + COHORT + (1 | W1RACE) + W1SEX_GENDER + W1POVERTY, data = complete_df)
+#  m1 <- lmer(kessler_diff ~ 1 + W2SEXMINID + GEDUC1 + GURBAN + GCENREG + COHORT + (1 | W1RACE) + W1SEX_GENDER + W1POVERTY, data = complete_df,
+#            weights = W2WEIGHT)
+# 
+#  m2 <- lmer(kessler_diff ~ 1 + W2SEXMINID + GEDUC1 + GURBAN + GCENREG + COHORT + (1 | W1RACE) + W1SEX_GENDER + W1POVERTY, data = complete_df)
 
 m3 <- brm(kessler_diff ~ 1 + W2SEXMINID + GEDUC1 + GURBAN + GCENREG + COHORT + (1 | W1RACE) + W1SEX_GENDER + W1POVERTY, data = complete_df)
 
-summary(m1)
-summary(m2)
-summary(m3)
+# summary(m1)
+# summary(m2)
+# summary(m3)
 
 ```
 
@@ -336,14 +359,14 @@ data.frame(Variable = colnames(posterior_draws)[1:length(est)],
 ```{r compare-race-levels, results=TRUE}
 race_comp <- spread_draws(m3, r_W1RACE[W1RACE,]) %>%
   mutate(W1RACE = case_when(
-    W1RACE == "(1).Asian" ~ "Asian",
-    W1RACE == "(2).Black/African.American" ~ "Black/African American",
-    W1RACE == "(3).Hispanic/Latino" ~ "Hispanic/Latino",
-    W1RACE == "(4).Middle.Eastern" ~ "Middle Eastern",
-    W1RACE == "(5).Native.Hawaiian/Pacific.Islander" ~ "Native Hawaiian/Pacific Islander",
-    W1RACE == "(6).White" ~ "White",
-    W1RACE == "(7).American.Indian"  ~ "American Indian",
-    W1RACE == "(8).Multirace" ~ "Multiracial"
+    W1RACE == "Asian" ~ "Asian",
+    W1RACE == "Black/African.American" ~ "Black/African American",
+    W1RACE == "Hispanic/Latino" ~ "Hispanic/Latino",
+    W1RACE == "Middle.Eastern" ~ "Middle Eastern",
+    W1RACE == "Native.Hawaiian/Pacific.Islander" ~ "Native Hawaiian/Pacific Islander",
+    W1RACE == "White" ~ "White",
+    W1RACE == "American.Indian"  ~ "American Indian",
+    W1RACE == "Multirace" ~ "Multiracial"
   )) %>%
   compare_levels(r_W1RACE, by = W1RACE) %>%
   ungroup() %>%
