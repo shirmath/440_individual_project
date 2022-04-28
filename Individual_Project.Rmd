@@ -1,8 +1,9 @@
 ---
-title: "STA 440 Final Project"
+title: "Assessing Mental Health Outcomes Across LGB Individuals from Generations Survey"
 author: "Shirley Mathur"
 date: "4/14/2022"
 output: pdf_document
+bibliography: references.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -31,9 +32,7 @@ library(bayesplot)
 
 ## Background
 
-**Note to self:Already know of difference between LGB vs. Het, now in this study want to examine differences by other demographic characteristics amongst LGB individuals to see how they are differentially impacted even though they are all LGB individuals.**
-
-Even in modern American society, lesbian, gay, and bisexual (LGB) individuals are still targets of discrimination at a systemic level, as evidenced by the legislation that seeks to target these individuals at all levels of government, ranging from the federal to municipal (@hrc). As posited by Meyer, LGB individuals that have to face such discrimination and prejudice in society are subject to an increased risk of developing mental health problems due to the *minority stress* that they encounter in their daily lives (@minority_stress). However, while this original meta-analysis specifically explored the disparities between the mental health outcomes of LGB individuals against heterosexual individuals, it did not necessarily account for compounding factors that could also influence stress, such as a LGB individuals who are also part of racial minority groups or comparing LGB individuals who are women as opposed to LGB individuals who are men. More recent research exploring these same phenomenon has been done in recent years to see how over time the mental health outcomes of LGB individuals compare to those of heterosexual individuals, while also trying to adjust for these other factors that account for how LGB individuals might also be part of other minority groups. One such study, utilizing data from the National Epidemiologic Survey of Alcohol and Related Conditions (NESARC) that was collected in 2005, found that LGB individuals were associated with a higher odds of having mental health disorders only if they were subject to other forms of discrimination as due to their other marginalized identities outside of just being a LGB individual (@NESARC).
+Even in modern American society, lesbian, gay, and bisexual (LGB) individuals are still targets of discrimination at a systemic level, as evidenced by the legislation that seeks to target these individuals at all levels of government, ranging from the federal to municipal @hrc. As posited by Meyer, LGB individuals that have to face such discrimination and prejudice in society are subject to an increased risk of developing mental health problems due to the *minority stress* that they encounter in their daily lives @minority_stress. However, while this original meta-analysis specifically explored the disparities between the mental health outcomes of LGB individuals against heterosexual individuals, it did not necessarily account for compounding factors that could also influence stress, such as a LGB individuals who are also part of racial minority groups or comparing LGB individuals who are women as opposed to LGB individuals who are men. More recent research exploring these same phenomenon has been done in recent years to see how over time the mental health outcomes of LGB individuals compare to those of heterosexual individuals, while also trying to adjust for these other factors that account for how LGB individuals might also be part of other minority groups. One such study, utilizing data from the National Epidemiologic Survey of Alcohol and Related Conditions (NESARC) that was collected in 2005, found that LGB individuals were associated with a higher odds of having mental health disorders only if they were subject to other forms of discrimination as due to their other marginalized identities outside of just being a LGB individual @NESARC.
 
 In this report, I seek to further expand upon the line of exploration of how different marginalized identities could together have an association with higher odds of having mental health disorders. I also seek to control for other factors that might influence differential treatment for individuals based on their societal contexts, such as accounting for the region in which people live.
 
@@ -148,7 +147,7 @@ missing_num <- pull(count(full_df)) - pull(count(complete_full_df))
 
 The dataset that was used for this report consisted of survey data from Wave 1 and Wave 2 of the Generations study that was conducted from 2017 through 2019. This study sought to explore a variety of outcomes, ranging from personal and social wellbeing to health outcomes, for members of the LGB population in the US. With context to the aims of my investigation, I was mainly interested in demographic variables that described the background characteristics of the surveyed individuals and how those were associated with mental health outcomes. The variables of interest are delineated below.
 
-* Kessler-6 Score - the Kessler-6 is a questionnaire that asks participants how often they have felt “nervous,” “hopeless,” “restless or fidgety,” “so depressed that nothing could cheer you up,” “that everything was an effort,” and “worthless” in the past 30 days, and is used as a clinical screening tool for assessing if an individual is suffering from Major Depressive Disorder (MDD) (@kessler). This score was the outcome of interest in assessing the mental health outcomes of respondents.
+* Kessler-6 Score - the Kessler-6 is a questionnaire that asks participants how often they have felt “nervous,” “hopeless,” “restless or fidgety,” “so depressed that nothing could cheer you up,” “that everything was an effort,” and “worthless” in the past 30 days, and is used as a clinical screening tool for assessing if an individual is suffering from Major Depressive Disorder (MDD) @kessler_2003. This score was the outcome of interest in assessing the mental health outcomes of respondents.
 * Sexuality - this variable is a categorical variables that categorizes respondents as either "gay/lesbian", "bisexual", or "other", depending on the write-in responses they provided for how they label their sexuality. 
 * Education - this variable is a categorical variables that provides information on a respondent's level of education as "high school or less", "some college", "college completed", or "more than college completed."
 * Urbanicity - this variable encodes whether a respondent lives in a locale that is considered urban, as defined in the Generations study technical notes, or if a respondent lives in a locale that is not considered urban.
@@ -168,6 +167,8 @@ For the final dataset, I selected the above variables from the original dataset 
 ## Objective
 
 The main objective of this report is to explore the associations between various demographic characteristics of a LGB individual and their mental health outcomes. Specifically, in the context of this study, since participants were measured at Wave 1 and Wave 2, I want to examine how, if at all, a participant's mental health outcome changed over the course of the year and what associations this change might have with the background characteristics and an individual. This would allow us to gain insight into how other societal factors and minority statuses that LGB individuals hold might impact their mental health outcomes.
+
+The secondary objective of this report is to explore if LGB individuals across different races had varying mental health outcomes over the course of this study. Thus, I aim to explore whether or not the direction and magnitude of an association with a LGB individual being from a particular racial category with mental health outcomes differs across the racial categories. This question is of particular interest to me as race is one aspect of an individual's identity that is theorized as leading to *minority stress* in an individual's life, so I wish to examine the intersection of these stressors in context with the stressors that are commonly felt amongst LGB individuals.
 
 ## Exploratory Data Analysis
 
@@ -246,9 +247,9 @@ From Figure 2A, we can see that the median change in Kessler-6 Score for individ
 
 From Figure 2B, we can see that the median change in Kessler-6 Score for individuals across all of the age cohorts appears to be relatively the same. However, we would need to include age cohort as a covariate in our model to see whether there is a statistically significant association between age cohort and change in Kessler-6 Score.
 
-From Figure 2C, we can see that the median change in Kessler-6 Score seems to be different for different racial subgroups of the survey sample. From the plot, it appears that Multiracial, White, Hispanic/Latino, Black/African American, and Asian individuals have approximately the same median change in Kessler-6 Score. However, it appears that Native Hawaiian/Pacific Islander and Middle Eastern individuals have a lower median Kessler-6 Score than individuals in all of the other racial categories. Due to the apparent differences in the distributions for change in Kessler-6 Score across the different racial groups, we might want to consider race as a covariate in our model to see whether there is a statistically significant association between race and change in Kessler-6 Score.
+From Figure 3A, we can see that the median change in Kessler-6 Score seems to be different for different racial subgroups of the survey sample. From the plot, it appears that Multiracial, White, Hispanic/Latino, Black/African American, and Asian individuals have approximately the same median change in Kessler-6 Score. However, it appears that Native Hawaiian/Pacific Islander and Middle Eastern individuals have a lower median Kessler-6 Score than individuals in all of the other racial categories. Due to the apparent differences in the distributions for change in Kessler-6 Score across the different racial groups, we might want to consider race as a covariate in our model to see whether there is a statistically significant association between race and change in Kessler-6 Score.
 
-From Figure 2D, we can see that the median change in Kessler-6 Score seems to be roughly the same across all of the various geographic census regions. However, while all of the regions seem to have fairly symmetric distributions, the South seems to be skewed left, perhaps implying that more individuals in the South region had a positive change in Kessler-6 score. Given that even though the median is roughly the same, but the distributions vary, it might be useful to include geogrphic region as a covariate in our model to assess whether it has a statistically significant association with change in Kessler-6 Score.
+From Figure 3B, we can see that the median change in Kessler-6 Score seems to be roughly the same across all of the various geographic census regions. However, while all of the regions seem to have fairly symmetric distributions, the South seems to be skewed left, perhaps implying that more individuals in the South region had a positive change in Kessler-6 score. Given that even though the median is roughly the same, but the distributions vary, it might be useful to include geogrphic region as a covariate in our model to assess whether it has a statistically significant association with change in Kessler-6 Score.
 
 # Methodology
 
@@ -256,11 +257,9 @@ From Figure 2D, we can see that the median change in Kessler-6 Score seems to be
 
 For modeling the relationship between the covariates of interest and the difference in Kessler-6 outcomes between the Wave 1 survey and Wave 2 survey, I decided to utilize a mixed effects linear regression model. The rationale behind this modeling approach is that while all of the covariates of interest are categorical variables, some have only two factors, such as poverty status, whereas others have many more, such as race. Furthermore, the variables that have many more covariates, such as race, seem to have imbalanced counts of different categories, which is where having random intercepts by race could be useful in modeling the association between racial category and change in Kessler-6 Score.
 
-
-## Variable Selection
-
 ## Model Specification
 
+The model that I ran is specified as follows:
 \begin{multline*}
 Y_i = \beta_0 + \beta_1(\text{Sexuality}_i = \text{Bisexual}) + \beta_2(\text{Sexuality}_i = \text{Other Sexual Minority}) + \beta_3(\text{Education}_i = \text{Some college}) \\
 + \beta_4(\text{Education}_i = \text{College}) + \beta_5(\text{Education}_i = \text{More than college}) + \beta_6(\text{Urbanicity}_i = \text{Urban}) \\
@@ -274,16 +273,18 @@ Y_i = \beta_0 + \beta_1(\text{Sexuality}_i = \text{Bisexual}) + \beta_2(\text{Se
 \text{where } &\beta_{0i} \sim N(0, \sigma_0) \perp \epsilon_{ij} \sim N(0, \sigma)
 \end{align*}
 
-with the *brms* default priors set on all parameters as follows:
+with the **brms** default priors set on all parameters as follows:
 
 \begin{align*}
-\sigma_0, \sigma, \beta_0 \stackrel{iid}{\tilde}\text{half-Student-t}(3)
+\sigma_0, \sigma, \beta_0 \stackrel{iid}{\sim} \text{half-Student-t}(3)
 \end{align*}
 
-as well as flat prior specified for all of the $\beta_k$ coefficients, where $k = 1, \ldots, 15$. The justification for these priors is that they are weakly informative and lead to improved convergence and sampling efficiency for the posterior @gelman_2006.
+as well as flat prior specified for all of the $\beta_k$ coefficients, where $k = 1, \ldots, 15$. The justification for these priors is that they are weakly informative and lead to improved convergence and sampling efficiency for the posterior @gelman_2006. For running the model, I utilized the **brms** package and ran it on `R` version 4.0.3. For the model, I sampled four chains of one-thousand iterations to obtain the posterior samples for the parameters.
 
 
 ## Model Diagnostics
+
+I plotted trace plots, density plots, and ACF plots for all of the parameters for all four chains of the model to assess the validity of the model. These can be seen in the **Appendix: Model Validation**.
 
 # Results
 ```{r model}
@@ -400,7 +401,7 @@ comparison_intervals[29:56,] %>%
 
 From the results provided above in Table 1, the only statistically significant association found within the model is that of the association between an LGB individual being located in the South as opposed to the North. In particular, the model results indicate that, holding all other covariates constant, a LGB individual located in the South is expected to have an difference in Kessler-6 Score that is 0.941 units greater than a LGB individual located in the North.
 
-With regards to the differences amongst racial groups, none of the mean differences between the random intercepts by race, conditional on all other covariates being constant, were found to be statistically significant. The results for these comparisons can be found in the Appendix.
+With regards to the differences amongst racial groups, none of the mean differences between the random intercepts by race, conditional on all other covariates being constant, were found to be statistically significant when examining either 66% posterior intervals of 95% posterior intervals, as seen in Table 2 and Table 3 above.
 
 # Discussion
 
@@ -411,19 +412,24 @@ With regards to the secondary question of interest of examining whether there ar
 
 ## Limitations and Future Work
 
+One major limitation of this study is that the modeling approach used in this paper does not account for survey weights associated with each individual that was sampled in the survey. Within the survey, each respondent was assigned a survey weight in order to correct bias that would ensue from the sample due to the fact that the sample was not a representative sample of the LGB population at large in the U.S. In particular, this sample oversampled White LGB individuals and had very few observations for LGB people from other racial groups such as Native Hawaiian/Pacific Islander, Asian, and Middle Eastern. Thus, it is possible that not accounting for the survey weights in the modeling approach has led to biased results in the model findings. In future work, researchers could try and incorporate survey weights into the modelling approach, as perhaps that would remove sources of bias when sampling from the posterior distributions of the model parameters. Such approaches might reference work done in @si_2017 to inform the modeling approach. 
 
+Another way to approach the modeling that I had considered to alleviate the issue of survey weights was utilizing a frequentist linear mixed effects model that could account for survey weights. However, it is difficult to quantify uncertainty for parameter estimates using frequentist linear mixed effects models, which could lead to results that are not readily interpretable in the context of the research objectives.
+
+Another limitation of this paper is that I utilized a linear model that can technically have non-integer outcomes for the difference in Kessler-6 score even though the Kessler-6 scale is technically only an integer-value scale and thus can only have integer-value outcomes for the difference in score. Thus, another idea for future work could be to instead model the outcome as a binary categorical response of whether or not the change in score was positive or negative. However, this would lead to loss of information on the magnitude of the change that is associated with the covariates.
 
 ## Summary
+Overall, the findings of this paper are that the only covariate that seems to be have a statistically significant association with change in Kessler-6 Score is that of whether a LGB individual is from the South as opposed to being from the Northeast. In particular, this association is in the positive direction, which seems to indicate that perhaps LGB individuals in the South had improved mental health outcomes over the course of the Generations survey as opposed to LGB individuals from the Northeast. The other question of major interest was whether there were any differential impacts of race on mental health outcomes of LGB individuals, and from the modeling results in this paper, there do not appear to be any statistically significant differences in how race impacts mental health outcomes across the various racial groups that were present in the survey sample. Thus, we cannot make any conclusive evidence of an association with belonging to different racial groups having an impact on mental health outcomes.
 
+\newpage
 # Appendix
 
-## Model Diagnostics
-
-### Trace Plots
+## Model Validation
 
 ```{r model-validation-plots}
 trace_data_names <- unique(mcmc_trace_data(m3)$parameter)
 trace_data <- mcmc_trace_data(m3) %>%
+  filter(parameter %in% trace_data_names[1:26]) %>%
   mutate(parameter = case_when(
     parameter == trace_data_names[[1]] ~ "Intercept",
     parameter == trace_data_names[[2]] ~ "Sexual Identity - Lesbian/Gay",
@@ -451,6 +457,7 @@ trace_data <- mcmc_trace_data(m3) %>%
     parameter == trace_data_names[[24]] ~ "Race - Multiracial",
     parameter == trace_data_names[[25]] ~ "Race - Native Hawaiian/Pacific Islander",
     parameter == trace_data_names[[26]] ~ "Race - White"))
+
 trace_plot <- trace_data %>%
   ggplot(mapping = aes(x = iteration, y = value, color = chain)) +
  # scale_color_manual(values = c("red", "blue", "green", "pink")) +
@@ -458,6 +465,7 @@ trace_plot <- trace_data %>%
   facet_wrap(~ parameter, scales = "free_y")  +
   theme_bw(base_size = 6) +
   labs(x = "Iteration", y = "Sampled Value")
+
 density_plot <- trace_data %>%
   ggplot(mapping = aes(x = value, color = chain)) +
   geom_density() +
@@ -470,28 +478,66 @@ pp_check_hist <- pp_check(m3, plotfun = "hist", nreps = 5, binwidth = 1) +
   xlab("Kessler-6 Difference") 
 
 acf_data <- mcmc_acf_bar(m3)$data
-acf_plot <- acf_data %>% 
+acf_plot_1 <- acf_data %>% 
+  filter(Parameter %in% trace_data_names[1:5]) %>%
   mutate(Parameter = case_when(
   Parameter == trace_data_names[[1]] ~ "Intercept",
     Parameter == trace_data_names[[2]] ~ "Sexual Identity - Lesbian/Gay",
     Parameter == trace_data_names[[3]] ~ "Sexual Identity - Other Sexual Minority",
     Parameter == trace_data_names[[4]] ~ "Education - Less than High School",
-    Parameter == trace_data_names[[5]] ~ "Education - More than college",
+    Parameter == trace_data_names[[5]] ~ "Education - More than college")) %>%
+  ggplot(mapping = aes(x = Lag, y = AC)) +
+  geom_bar(stat = "identity", color = "red", fill = "red", alpha = 0.5) +
+  facet_grid(Chain ~ Parameter) +
+  labs(x = "Lag", y = "Autocorrelation") +
+  theme_bw(base_size = 6)
+
+acf_plot_2 <- acf_data %>% 
+  filter(Parameter %in% trace_data_names[6:10]) %>%
+  mutate(Parameter = case_when(
     Parameter == trace_data_names[[6]] ~ "Education - Some college",
     Parameter == trace_data_names[[7]] ~ "Urbanicity - Urban",
     Parameter == trace_data_names[[8]] ~ "Region - Northeast",
     Parameter == trace_data_names[[9]] ~ "Region - South",
-    Parameter == trace_data_names[[10]] ~ "Region - West",
+    Parameter == trace_data_names[[10]] ~ "Region - West")) %>%
+  ggplot(mapping = aes(x = Lag, y = AC)) +
+  geom_bar(stat = "identity", color = "red", fill = "red", alpha = 0.5) +
+  facet_grid(Chain ~ Parameter) +
+  labs(x = "Lag", y = "Autocorrelation") +
+  theme_bw(base_size = 6)
+
+acf_plot_3 <- acf_data %>% 
+  filter(Parameter %in% trace_data_names[11:15]) %>%
+  mutate(Parameter = case_when(
     Parameter == trace_data_names[[11]] ~ "Cohort - Older",
     Parameter == trace_data_names[[12]] ~ "Cohort - Younger",
     Parameter == trace_data_names[[13]] ~ "Sex,Gender - Queer/NB Male",
     Parameter == trace_data_names[[14]] ~ "Sex,Gender - Cisgender Male",
-    Parameter == trace_data_names[[15]] ~ "Sex,Gender - Cisgender Female",
+    Parameter == trace_data_names[[15]] ~ "Sex,Gender - Cisgender Female")) %>%
+  ggplot(mapping = aes(x = Lag, y = AC)) +
+  geom_bar(stat = "identity", color = "red", fill = "red", alpha = 0.5) +
+  facet_grid(Chain ~ Parameter) +
+  labs(x = "Lag", y = "Autocorrelation") +
+  theme_bw(base_size = 6)
+
+acf_plot_4 <- acf_data %>% 
+  filter(Parameter %in% trace_data_names[16:20]) %>%
+  mutate(Parameter = case_when(
     Parameter == trace_data_names[[16]] ~ "Poverty - Below FPL",
     Parameter == trace_data_names[[17]] ~ "Race Intercepts Sigma",
     Parameter == trace_data_names[[18]] ~ "Sigma",
     Parameter == trace_data_names[[19]] ~ "Race - American Indian",
-    Parameter == trace_data_names[[20]] ~ "Race - Asian",
+    Parameter == trace_data_names[[20]] ~ "Race - Asian"
+)) %>%
+  ggplot(mapping = aes(x = Lag, y = AC)) +
+  geom_bar(stat = "identity", color = "red", fill = "red", alpha = 0.5) +
+  facet_grid(Chain ~ Parameter) +
+  labs(x = "Lag", y = "Autocorrelation") +
+  theme_bw(base_size = 6)
+
+acf_plot_5 <- acf_data %>% 
+  filter(Parameter %in% trace_data_names[21:26]) %>%
+  mutate(Parameter = case_when(
     Parameter == trace_data_names[[21]] ~ "Race - Black/African American",
     Parameter == trace_data_names[[22]] ~ "Race - Hispanic/Latino",
     Parameter == trace_data_names[[23]] ~ "Race - Middle Eastern",
@@ -504,15 +550,54 @@ acf_plot <- acf_data %>%
   labs(x = "Lag", y = "Autocorrelation") +
   theme_bw(base_size = 6)
 ```
+### Trace Plots
+
+In order to assess the validity of the model, I plotted trace plots for all four chains that were run for the model. As shown below, the trace plots indeed appear to converge.
+```{r trace-plots, fig.align='center'}
+trace_plot +
+  plot_annotation(caption = "Figure A-1: Trace Plots for all parameters.")
+```
+
+
+### Density Plots
+
+In order to assess the validity of the model, I plotted density plots for the potsterior distributions of all the parameters for all four chains that were run for the model. As shown below, the density plots for the coefficient terms appear to be approximately normal, and the trace plots for the standard deviation of the race random intercepts as well as the standard deviation of the residuals both appear to be approximately half-Student-t distributions, as expected. Thus, the posterior densitites seem to appear as we would expect them to appear.
+```{r density-plots, fig.align='center'}
+density_plot  +
+  plot_annotation(caption = "Figure A-2: Density Plots for all parameters.")
+```
+
+
+### ACF Plots
+
+I plotted ACF plots to check the correlation between samples taken from subsequent iterations of the model to assess whether the posterior samples sufficiently explored the posterior distribution space. As Figures A-3 through A-7 below show, the ACF is fairly low for every 20 iterations, and thus it appears that posterior space was sufficiently explored.
+```{r acf-plots, fig.align='center'}
+acf_plot_1 +
+  plot_annotation(caption = "Figure A-3: ACF Plots for parameters.")
+acf_plot_2 +
+  plot_annotation(caption = "Figure A-4: ACF Plots for parameters.")
+acf_plot_3 +
+  plot_annotation(caption = "Figure A-5: ACF Plots for parameters.")
+acf_plot_4 +
+  plot_annotation(caption = "Figure A-6: ACF Plots for parameters.")
+acf_plot_5 +
+  plot_annotation(caption = "Figure A-7: ACF Plots for parameters.")
+```
 
 
 ## Plot of Conditional Mean of Posterior Comparisons for Race Intercepts
+
+The plot below shows visually the results presented earlier in Tables 2 and 3. As seen earlier, none of the intervals seem to not contain zero, thus leading to us being unable to conclude if there are any differential impacts of race on mental health outcomes amongst LGB individuals.
 ```{r comparison-plots, results = TRUE}
 race_comp %>%
   ggplot(aes(y = W1RACE, x = `Conditional Mean`)) +
   stat_halfeye() +
   geom_vline(xintercept = 0, linetype = "dashed") +
   labs(x = "Conditional Mean Difference", y = "Race Estimated Effect Pairings") + 
-  theme_bw()
+  theme_bw() +
+  plot_annotation(caption = "Figure A-8: Plot of conditional mean differences across random intercepts by race.")
 ```
 
+\newpage
+
+# References
