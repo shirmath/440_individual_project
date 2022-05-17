@@ -27,6 +27,13 @@ library(bookdown)
 library(bayesplot)
 ```
 
+\newpage
+
+#Abstract
+
+
+
+\newpage
 
 # Introduction
 
@@ -255,11 +262,10 @@ From Figure 3B, we can see that the median change in Kessler-6 Score seems to be
 
 ## Model Selection
 
-For modeling the relationship between the covariates of interest and the difference in Kessler-6 outcomes between the Wave 1 survey and Wave 2 survey, I decided to utilize a mixed effects linear regression model. The rationale behind this modeling approach is that while all of the covariates of interest are categorical variables, some have only two factors, such as poverty status, whereas others have many more, such as race. Furthermore, the variables that have many more covariates, such as race, seem to have imbalanced counts of different categories, which is where having random intercepts by race could be useful in modeling the association between racial category and change in Kessler-6 Score.
-
+For modeling the relationship between the covariates of interest and the difference in Kessler-6 outcomes between the Wave 1 survey and Wave 2 survey, I decided to utilize a mixed effects linear regression model. The rationale behind this modeling approach is that while all of the covariates of interest are categorical variables, some have only two factors, such as poverty status, whereas others have many more, such as race. Furthermore, the variables that have many more covariates, such as race, seem to have imbalanced counts of different categories, which is where having random intercepts by race could be useful in modeling the association between racial category and change in Kessler-6 Score. 
 ## Model Specification
 
-The model that I ran is specified as follows:
+The model that I ran is specified as follows, where $i$ indexes each individual respondent, and $j$ indexes the racial group to which the $i$-th individual belongs:
 \begin{multline*}
 Y_i = \beta_0 + \beta_1(\text{Sexuality}_i = \text{Bisexual}) + \beta_2(\text{Sexuality}_i = \text{Other Sexual Minority}) + \beta_3(\text{Education}_i = \text{Some college}) \\
 + \beta_4(\text{Education}_i = \text{College}) + \beta_5(\text{Education}_i = \text{More than college}) + \beta_6(\text{Urbanicity}_i = \text{Urban}) \\
@@ -391,11 +397,11 @@ comparison_intervals <- race_comp %>%
 
 comparison_intervals[1:28,] %>%
   select(W1RACE, `Conditional Mean.lower`, `Conditional Mean`, `Conditional Mean.upper`) %>%
-  kbl(caption = "Summary of Conditional Means of Comparisons of Race Intercepts (66th Percentile Intervals)", col.names = c("Race Comparison", "Lower Quantile", "Conditional Mean", "Upper Quantile"), booktabs = T)
+  kbl(caption = "Summary of Conditional Means of Comparisons of Race Intercepts (66th Percentile Intervals)", col.names = c("Race Comparison", "Lower Quantile", "Conditional Mean", "Upper Quantile"), booktabs = T, digits = 3) 
 
 comparison_intervals[29:56,] %>%
   select(W1RACE, `Conditional Mean.lower`, `Conditional Mean`, `Conditional Mean.upper`) %>%
-  kbl(caption = "Summary of Conditional Means of Comparisons of Race Intercepts (95th Percentile Intervals)", col.names = c("Race Comparison", "Lower Quantile", "Conditional Mean", "Upper Quantile"), booktabs = T)
+  kbl(caption = "Summary of Conditional Means of Comparisons of Race Intercepts (95th Percentile Intervals)", col.names = c("Race Comparison", "Lower Quantile", "Conditional Mean", "Upper Quantile"), booktabs = T, digits = 3)
 
 ```
 
@@ -417,6 +423,8 @@ One major limitation of this study is that the modeling approach used in this pa
 Another way to approach the modeling that I had considered to alleviate the issue of survey weights was utilizing a frequentist linear mixed effects model that could account for survey weights. However, it is difficult to quantify uncertainty for parameter estimates using frequentist linear mixed effects models, which could lead to results that are not readily interpretable in the context of the research objectives.
 
 Another limitation of this paper is that I utilized a linear model that can technically have non-integer outcomes for the difference in Kessler-6 score even though the Kessler-6 scale is technically only an integer-value scale and thus can only have integer-value outcomes for the difference in score. Thus, another idea for future work could be to instead model the outcome as a binary categorical response of whether or not the change in score was positive or negative. However, this would lead to loss of information on the magnitude of the change that is associated with the covariates.
+
+One other potential limitation of this analysis is that I sought to analyze differences in Kessler-6 outcomes between Wave 1 and Wave 2 of the Generations study. Thus, it is difficult to ascertain if there are necessarily differences in the baseline mental health status of individuals from various geographic regions or racial groups, as this analysis instead looks at associations amongst demographic characteristics and changes in mental health outcomes as opposed to just looking at the association between demographic characteristics and baseline mental health status. For example, my analysis found the only statistically significant association to be that which is present between an individual being from the South as opposed to the Northeast, and in particular this association seemed to indicate that LGB individuals in the South were associated with a more positive change in Kessler-6 score as opposed to individuals from the Northeast. However, it could be the case that the baseline scores of individuals in the South were lower than those of individuals from the Northeast, so then even with individuals from the South having a more positive difference, they might still have poorer overall mental health outcomes than their counterparts in the Northeast. Thus, future work in this area could instead seek to analyze associations between final Kessler-6 scores and demographic characterisitics to see in general how mental health outcomes themselves, and not differences in mental health outcomes over the course of a year, are associated with various demographic characterisitics of LGB individuals.
 
 ## Summary
 Overall, the findings of this paper are that the only covariate that seems to be have a statistically significant association with change in Kessler-6 Score is that of whether a LGB individual is from the South as opposed to being from the Northeast. In particular, this association is in the positive direction, which seems to indicate that perhaps LGB individuals in the South had improved mental health outcomes over the course of the Generations survey as opposed to LGB individuals from the Northeast. The other question of major interest was whether there were any differential impacts of race on mental health outcomes of LGB individuals, and from the modeling results in this paper, there do not appear to be any statistically significant differences in how race impacts mental health outcomes across the various racial groups that were present in the survey sample. Thus, we cannot make any conclusive evidence of an association with belonging to different racial groups having an impact on mental health outcomes.
