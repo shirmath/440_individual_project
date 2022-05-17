@@ -1,6 +1,6 @@
 ---
 title: "Assessing Mental Health Outcomes Across LGB Individuals from Generations Survey"
-author: "Shirley Mathur"
+author: ""
 date: "4/14/2022"
 output: pdf_document
 bibliography: references.bib
@@ -27,11 +27,9 @@ library(bookdown)
 library(bayesplot)
 ```
 
-\newpage
+# Abstract
 
-#Abstract
-
-
+In recent years, there has been an increase of attention into evaluating the health and societal outcomes of lesbian, gay, and bisexual (LGB) individuals in the United States. One such study that was conducted into examining various health and societal outcomes for LGB individuals was the Generations study that was conducted from 2016 through 2019. In this analysis, I utilized the data collected from the Generations study, particular from Wave 1 and Wave 2 of the study, to examine associations between various demographic characteristics of LGB individuals in the US and the difference in mental health outcomes, as measured by the Kessler-6 scale, for these individuals from Wave 1 to Wave 2 of the Generations study. From my analysis, I found that, holding all else constant, LGB individuals from the South were expected to have a greater increase in their Kessler-6 score than LGB individuals from the Northeast.
 
 \newpage
 
@@ -262,7 +260,8 @@ From Figure 3B, we can see that the median change in Kessler-6 Score seems to be
 
 ## Model Selection
 
-For modeling the relationship between the covariates of interest and the difference in Kessler-6 outcomes between the Wave 1 survey and Wave 2 survey, I decided to utilize a mixed effects linear regression model. The rationale behind this modeling approach is that while all of the covariates of interest are categorical variables, some have only two factors, such as poverty status, whereas others have many more, such as race. Furthermore, the variables that have many more covariates, such as race, seem to have imbalanced counts of different categories, which is where having random intercepts by race could be useful in modeling the association between racial category and change in Kessler-6 Score. 
+For modeling the relationship between the covariates of interest and the difference in Kessler-6 outcomes between the Wave 1 survey and Wave 2 survey, I decided to utilize a mixed effects linear regression model. The rationale behind this modeling approach is that while all of the covariates of interest are categorical variables, some have only two factors, such as poverty status, whereas others have many more, such as race. Furthermore, the variables that have many more covariates, such as race, seem to have imbalanced counts of different categories, which is where having random intercepts by race could be useful in modeling the association between racial category and change in Kessler-6 Score.
+
 ## Model Specification
 
 The model that I ran is specified as follows, where $i$ indexes each individual respondent, and $j$ indexes the racial group to which the $i$-th individual belongs:
